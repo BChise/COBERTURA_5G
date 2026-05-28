@@ -1,139 +1,6 @@
-// var map = L.map('map').setView([-12.1, -77.0], 15);
-
-// // capa base (OpenStreetMap)
-// L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-//     attribution: '&copy; OpenStreetMap'
-// }).addTo(map);
-
-
-// let antennas = [];
-
-// map.on('click', function(e) {
-//     let lat = e.latlng.lat;
-//     let lon = e.latlng.lng;
-
-//     let marker = L.marker([lat, lon]).addTo(map);
-
-//     antennas.push({
-//         lat: lat,
-//         lon: lon,
-//         ptx: 30,
-//         h: 10
-//     });
-
-//     console.log("Antenas:", antennas);
-// });
-
-
-// let heatLayer;
-
-// function simular() {
-
-//     if (antennas.length === 0) {
-//         alert("Agrega al menos una antena");
-//         return;
-//     }
-
-//     document.getElementById("loading").style.display = "block";
-
-//     fetch("http://127.0.0.1:5000/simulate", {
-//         method: "POST",
-//         headers: {
-//             "Content-Type": "application/json"
-//         },
-//         body: JSON.stringify({
-//             antennas: antennas,
-//             frequency: 3.5
-//         })
-//     })
-//     .then(res => res.json())
-//     .then(data => {
-
-//         let puntos = data.map(p => {
-//             let intensidad = (p.value + 100) / 40;
-//             return [p.lat, p.lon, intensidad];
-//         });
-
-//         if (heatLayer) {
-//             map.removeLayer(heatLayer);
-//         }
-
-//         heatLayer = L.heatLayer(puntos, {
-//             radius: 25
-//         }).addTo(map);
-
-//         document.getElementById("loading").style.display = "none";
-//     });
-// }
-
-
-// fetch("http://127.0.0.1:5000/simulate", {
-//     method: "POST",
-//     headers: {
-//         "Content-Type": "application/json"
-//     },
-//     body: JSON.stringify({
-//         antennas: antennas,
-//         frequency: 3.5
-//     })
-// })
-// .then(res => res.json())
-// .then(data => {
-
-//     let puntos = data.map(p => {
-//         let intensidad = (p.value + 100) / 40;
-//         intensidad = Math.max(0, Math.min(1, intensidad));
-//         return [p.lat, p.lon, intensidad];
-//     });
-
-//     if (heatLayer) {
-//         map.removeLayer(heatLayer);
-//     }
-
-//     heatLayer = L.heatLayer(puntos, {
-//     radius: getRadius()
-//     }).addTo(map);
-
-//     document.getElementById("loading").style.display = "none";
-// })
-// .catch(err => {
-//     console.error(err);
-//     document.getElementById("loading").style.display = "none";
-//     alert("Error en la simulación");
-// });
-
-
-// function limpiar() {
-//     antennas = [];
-//     map.eachLayer(function(layer) {
-//         if (layer instanceof L.Marker) {
-//             map.removeLayer(layer);
-//         }
-//     });
-
-//     if (heatLayer) {
-//         map.removeLayer(heatLayer);
-//     }
-// }
-
-
-// function getRadius() {
-//     let zoom = map.getZoom();
-
-//     // Ajuste empírico (puedes afinarlo)
-//     return Math.max(10, zoom * 2);
-// }
-
-// map.on('zoomend', function () {
-//     if (heatLayer) {
-//         heatLayer.setOptions({
-//             radius: getRadius()
-//         });
-//     }
-// });
-
-
-
+// ==========================
+// MAPA
+// ==========================
 var map = L.map('map').setView([-12.1, -77.0], 15);
 
 // capa base (OpenStreetMap)
@@ -141,6 +8,9 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap'
 }).addTo(map);
 
+// ==========================
+// VARIABLES
+// ==========================
 let antennas = [];
 let gridLayer = L.layerGroup().addTo(map);
 
@@ -148,16 +18,28 @@ let gridLayer = L.layerGroup().addTo(map);
 // AGREGAR ANTENAS
 // ==========================
 map.on('click', function(e) {
+
     let lat = e.latlng.lat;
     let lon = e.latlng.lng;
 
+    // valores actuales de interfaz
+    let ptx = parseFloat(
+        document.getElementById("ptx").value
+    );
+
+    let height = parseFloat(
+        document.getElementById("height").value
+    );
+
+    // marcador visual
     let marker = L.marker([lat, lon]).addTo(map);
 
+    // guardar antena
     antennas.push({
         lat: lat,
         lon: lon,
-        ptx: 30,
-        h: 10
+        ptx: ptx,
+        h: height
     });
 
     console.log("Antenas:", antennas);
@@ -167,11 +49,15 @@ map.on('click', function(e) {
 // FUNCIÓN COLOR (PRx → COLOR)
 // ==========================
 function getColor(prx) {
-    if (prx > -70) return "red";        // excelente
-    if (prx > -80) return "orange";
-    if (prx > -90) return "yellow";
-    if (prx > -100) return "green";
-    return "blue";                      // mala
+
+    if (prx > -60) return "red";          // excelente
+    if (prx > -70) return "orange";       // muy buena
+    if (prx > -80) return "yellow";       // buena
+    if (prx > -90) return "green";        // media
+    if (prx > -100) return "cyan";        // baja
+    if (prx > -110) return "blue";        // muy baja
+
+    return "purple";                      // sin cobertura
 }
 
 // ==========================
@@ -184,25 +70,40 @@ function simular() {
         return;
     }
 
+    // frecuencia seleccionada
+    let frequency = parseFloat(
+        document.getElementById("frequency").value
+    );
+
+    // modelo seleccionado
+    let modelo = document.getElementById("modelo").value;
+
     document.getElementById("loading").style.display = "block";
 
     fetch("http://127.0.0.1:5000/simulate", {
+
         method: "POST",
+
         headers: {
             "Content-Type": "application/json"
         },
+
         body: JSON.stringify({
             antennas: antennas,
-            frequency: 3.5
+            frequency: frequency,
+            modelo: modelo
         })
+
     })
+
     .then(res => res.json())
+
     .then(data => {
 
         // limpiar grid anterior
         gridLayer.clearLayers();
 
-        // tamaño de celda (~10m aprox)
+        // tamaño de celda (~10m)
         let delta = 0.00009;
 
         data.forEach(p => {
@@ -225,9 +126,13 @@ function simular() {
 
         document.getElementById("loading").style.display = "none";
     })
+
     .catch(err => {
+
         console.error(err);
+
         document.getElementById("loading").style.display = "none";
+
         alert("Error en la simulación");
     });
 }
@@ -236,12 +141,15 @@ function simular() {
 // LIMPIAR
 // ==========================
 function limpiar() {
+
     antennas = [];
 
     map.eachLayer(function(layer) {
+
         if (layer instanceof L.Marker) {
             map.removeLayer(layer);
         }
+
     });
 
     gridLayer.clearLayers();

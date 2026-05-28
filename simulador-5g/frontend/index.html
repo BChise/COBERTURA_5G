@@ -12,35 +12,131 @@
         }
     </style>
 </head>
+
 <body>
 
 <div id="map"></div>
 
+<!-- Loading -->
 <div id="loading" style="
     position:absolute;
     top:50px;
-    left:10px;
+    right:10px;
     background:white;
-    padding:5px;
+    padding:8px 12px;
+    border-radius:8px;
     z-index:1000;
     display:none;
+    box-shadow:0 2px 6px rgba(0,0,0,0.2);
+    font-family:Arial;
 ">
     Calculando...
 </div>
 
+<!-- Botones -->
 <button onclick="simular()" style="
     position:absolute;
     top:10px;
     left:10px;
     z-index:1000;
+    padding:8px 14px;
 ">
     Simular
 </button>
 
-
-<button onclick="limpiar()" style="position:absolute;top:10px;left:100px;z-index:1000;">
+<button onclick="limpiar()" style="
+    position:absolute;
+    top:10px;
+    left:110px;
+    z-index:1000;
+    padding:8px 14px;
+">
     Limpiar
 </button>
+
+<!-- Panel de configuración -->
+<div style="
+    position:absolute;
+    top:60px;
+    left:10px;
+    z-index:1000;
+    background:rgba(255,255,255,0.95);
+    padding:14px;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    font-family:Arial, sans-serif;
+    width:220px;
+">
+
+    <div style="margin-bottom:12px;">
+        <label style="font-weight:bold;">Modelo</label><br>
+        <select id="modelo" style="width:100%; margin-top:4px;">
+            <option value="UMI">UMi (3GPP)</option>
+            <option value="ABG">ABG</option>
+            <option value="CI">CI</option>
+        </select>
+    </div>
+
+    <div style="margin-bottom:12px;">
+        <label style="font-weight:bold;">Frecuencia (GHz)</label><br>
+        <select id="frequency" style="width:100%; margin-top:4px;">
+            <option value="0.7">700 MHz</option>
+            <option value="2.6">2.6 GHz</option>
+            <option value="3.5" selected>3.5 GHz</option>
+            <option value="28">28 GHz</option>
+        </select>
+    </div>
+
+    <div style="margin-bottom:12px;">
+        <label style="font-weight:bold;">Potencia TX (dBm)</label><br>
+        <input 
+            type="number"
+            id="ptx"
+            value="30"
+            style="width:100%; margin-top:4px;"
+        >
+    </div>
+
+    <div>
+        <label style="font-weight:bold;">Altura BS (m)</label><br>
+        <input 
+            type="number"
+            id="height"
+            value="10"
+            style="width:100%; margin-top:4px;"
+        >
+    </div>
+
+</div>
+
+<!-- Leyenda -->
+<div id="legend" style="
+    position:absolute;
+    bottom:20px;
+    left:10px;
+    background:rgba(255,255,255,0.95);
+    padding:12px 14px;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    z-index:1000;
+    font-family:Arial, sans-serif;
+    font-size:13px;
+    line-height:20px;
+">
+
+    <div style="font-weight:bold; margin-bottom:8px;">
+        📡 Potencia recibida (PRx)
+    </div>
+
+    <div><span style="color:red;">⬤</span> > -60 dBm (Excelente)</div>
+    <div><span style="color:orange;">⬤</span> -60 a -70 dBm (Muy buena)</div>
+    <div><span style="color:#FFD700;">⬤</span> -70 a -80 dBm (Buena)</div>
+    <div><span style="color:green;">⬤</span> -80 a -90 dBm (Media)</div>
+    <div><span style="color:cyan;">⬤</span> -90 a -100 dBm (Baja)</div>
+    <div><span style="color:blue;">⬤</span> -100 a -110 dBm (Muy baja)</div>
+    <div><span style="color:purple;">⬤</span> < -110 dBm (Sin cobertura)</div>
+
+</div>
 
 <!-- Scripts -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -48,5 +144,4 @@
 <script src="app.js"></script>
 
 </body>
-
 </html>
