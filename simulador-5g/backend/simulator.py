@@ -82,7 +82,8 @@
 import numpy as np
 import math
 from umi import pathloss_umi
-
+from umi_abg import simular_enlace_5g
+from umi_ci import simular_enlace_ci
 # ==========================
 # FUNCIÓN PRx
 # ==========================
@@ -104,7 +105,7 @@ def generar_grid(radio=1000, resolucion=10):
     return puntos
 
 
-def generar_grid_dinamico(antennas_xy, margen=600, resolucion=15):
+def generar_grid_dinamico(antennas_xy, margen=800, resolucion=8):
     xs = [a["x"] for a in antennas_xy]
     ys = [a["y"] for a in antennas_xy]
 
@@ -154,7 +155,7 @@ def xy_to_latlon(x, y, lat_ref, lon_ref):
 # ==========================
 # FUNCIÓN PRINCIPAL
 # ==========================
-def simular(antennas, fc):
+def simular(antennas, fc, modelo):
     resultados = []
 
     # 🔥 Centro del sistema (promedio)
@@ -188,7 +189,20 @@ def simular(antennas, fc):
             # 🔥 TX en su posición REAL en el mismo sistema
             tx_pos = (ant["x"], ant["y"], ant["h"])
 
-            pl, _ = pathloss_umi(tx_pos, rx_pos, fc)
+            #pl, _ = pathloss_umi(tx_pos, rx_pos, fc)
+            if modelo == "UMI":
+                pl, _ = pathloss_umi(tx_pos, rx_pos, fc)
+            
+
+            elif modelo == "ABG":
+                d2d = math.sqrt((tx_pos[0] - rx_pos[0])**2 + (tx_pos[1] - rx_pos[1])**2)
+                pl, _, _ = simular_enlace_5g(d2d, ant["h"], 1.5, fc)
+                
+
+            elif modelo == "CI":
+                d2d = math.sqrt((tx_pos[0] - rx_pos[0])**2 + (tx_pos[1] - rx_pos[1])**2)
+                pl, _, _ = simular_enlace_ci(d2d, ant["h"], 1.5, fc)
+                
 
             prx = calcular_prx(ant["ptx"], pl)
 
